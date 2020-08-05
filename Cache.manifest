@@ -1,5 +1,4 @@
 CACHE MANIFEST
-# random: ffcd9f7423ef9eb0ff50dbe9557e4ab7
 
 CACHE:
 common/exploit.js
@@ -8,8 +7,6 @@ common/malloc.js
 common/rop.js
 common/syscalls.js
 common/syscalls2.js
-ftp.html
-ftp.js
 index.html
 jb.html
 jb/c-code.js
@@ -28,6 +25,8 @@ WebRTE.html
 payloadWebRTE.js
 linux.js
 linux.html
+ftp.html
+ftp.js
 
 NETWORK:
 *
