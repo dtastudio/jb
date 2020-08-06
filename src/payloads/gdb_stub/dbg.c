@@ -5,8 +5,10 @@ extern int errno;
 #else
 #define _GNU_SOURCE
 #endif
+#include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <netinet/tcp.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/ucontext.h>
@@ -147,6 +149,19 @@ static void reloc_commands()
     for(int i = 0; i < sizeof(commands) / sizeof(commands[0]); i++)
         commands[i] += diff;
 }
+
+#ifdef BLOB
+extern char _end[];
+
+static void mprotect_rwx()
+{
+    unsigned long long start = (unsigned long long)_start;
+    unsigned long long end = (unsigned long long)_end;
+    start &= ~(PAGE_SIZE-1);
+    end = ((end - 1) | (PAGE_SIZE-1)) + 1;
+    mprotect((void*)start, end-start, PROT_READ|PROT_WRITE|PROT_EXEC);
+}
+#endif
 #endif
 
 enum
@@ -560,6 +575,9 @@ static void tmp_sigsegv(int sig, siginfo_t* idc, void* o_uc)
 void dbg_enter(void)
 {
 #ifdef __PS4__
+#ifdef BLOB
+    mprotect_rwx();
+#endif
     reloc_commands();
 #endif
     int sock = socket(AF_INET, SOCK_STREAM, 0);
@@ -574,6 +592,8 @@ void dbg_enter(void)
         return;
     listen(sock, 1);
     gdb_socket = accept(sock, NULL, NULL);
+    int nodelay = 1;
+    setsockopt(gdb_socket, IPPROTO_TCP, TCP_NODELAY, &nodelay, sizeof(nodelay));
     int p[2];
     socketpair(AF_UNIX, SOCK_STREAM, 0, p);
     pipe_r = p[0];
